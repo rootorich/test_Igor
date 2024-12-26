@@ -18,6 +18,10 @@ AbilityManager::AbilityManager() {
   }
 }
 
+AbilityManager::AbilityManager(std::queue<AbilityNames> &abilities) {
+    queue_ability = abilities;
+}
+
 std::unique_ptr<Ability> AbilityManager::GetAbility() {
   if (queue_ability.empty()) {
     throw AbilityQueueIsEmpty();
@@ -64,4 +68,6 @@ std::unique_ptr<Ability> AbilityManager::GetStandartShot() {
 std::unique_ptr<Ability> AbilityManager::GetRandomShot() {
   return std::make_unique<RandomShooter>();
 }
+
+
 

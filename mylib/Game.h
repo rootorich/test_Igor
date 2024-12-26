@@ -55,13 +55,21 @@ public:
 
     void SaveShip(Saver &saver, Ship ship);
 
-    Ship *LoadShip(Saver &saver);
+    Ship* LoadShip(Saver &saver);
 
     void SaveCellProperties(Saver &saver, SavedCellProperties savedCellProperties);
 
-    Field *LoadField(Saver &saver);
+    Field LoadField(Saver &saver);
 
     SavedCellProperties LoadCellProperties(Saver &saver);
+
+    void SavePlayer(Saver &saver, Player &player);
+
+    void SavePlayerAbilities(Saver &saver, std::queue<AbilityNames> &abilities);
+
+    Player LoadPlayer(Saver &saver);
+
+    AbilityManager LoadPlayerAbilities(Saver &saver);
 };
 
 #endif

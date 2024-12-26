@@ -129,8 +129,6 @@ void Game::Save() {
 void Game::Load() {
     Saver saver("file.txt");
 
-    Field* field0 = LoadField(saver);
-    Field* field1 = LoadField(saver);
 
 
 
@@ -180,7 +178,7 @@ void Game::CreatePlayer() {
     players_.push_back(Player());
 }
 
-Field* Game::LoadField(Saver& saver) {
+Field Game::LoadField(Saver& saver) {
     int ships_size = saver.loadData<int>();
 
     std::vector<Ship*> ships;
@@ -192,7 +190,7 @@ Field* Game::LoadField(Saver& saver) {
     int rows = saver.loadData<int>();
     int colls = saver.loadData<int>();
 
-    auto field = new Field();
+    Field field;
 
     for (int i = 0; i < rows; ++i){
         for (int j = 0; j < colls; ++j){
@@ -204,11 +202,72 @@ Field* Game::LoadField(Saver& saver) {
             cellProperties.vision = savedCellProperties.vision;
             cellProperties.status = savedCellProperties.status;
 
-            field->SetCell(i, j, cellProperties);
+            field.SetCell(i, j, cellProperties);
         }
     }
 
     return field;
+}
+
+
+void Game::SavePlayer(Saver& saver, Player& player){
+    bool is_it_bot = player.is_it_bot_();
+    bool turn = player.get_player_turn_();
+
+    saver.saveData(is_it_bot);
+    saver.saveData(turn);
+
+    std::queue<AbilityNames> unique_abilities = player.get_ability_manager_().get_queue_ability();
+    SavePlayerAbilities(saver,unique_abilities);
+
+    SaveField(saver, player.get_field_());
+}
+
+Player Game::LoadPlayer(Saver& saver){
+    bool is_it_bot = saver.loadData<bool>();
+    bool turn = saver.loadData<bool>();
+
+    AbilityManager abilityManager = LoadPlayerAbilities(saver);
+    Field field = LoadField(saver);
+
+    if (!is_it_bot){
+        Player player;
+        player.set_ability_manager_(abilityManager);
+        player.set_field_(field);
+    }
+    else{
+        //todo
+        Player player;
+
+        return player; // temp!!!
+    }
+
+}
+
+void Game::SavePlayerAbilities(Saver& saver,std::queue<AbilityNames>&abilities){
+
+    saver.saveData(abilities.size());
+
+    while(!abilities.empty()){
+        AbilityNames ability = abilities.front();
+        saver.saveData((int)ability);
+        abilities.pop();
+    }
+}
+
+AbilityManager Game::LoadPlayerAbilities(Saver& saver){
+    int size = saver.loadData<int>();
+
+    std::queue<AbilityNames> abilities;
+
+    for (int i = 0; i < size; ++i){
+        auto ability = (AbilityNames)saver.loadData<int>();
+        abilities.push(ability);
+    }
+
+    AbilityManager abilityManager(abilities);
+
+    return abilityManager;
 }
 
 void Game::SaveShip(Saver& saver, Ship ship) {

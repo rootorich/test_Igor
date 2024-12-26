@@ -25,8 +25,10 @@ enum class AbilityNames {
 class AbilityManager {
  public:
   AbilityManager();
+  explicit AbilityManager(std::queue<AbilityNames>& abilities);
 
-  std::unique_ptr<Ability> GetAbility();
+
+    std::unique_ptr<Ability> GetAbility();
 
   std::queue<AbilityNames> get_queue_ability();
 
@@ -37,8 +39,6 @@ class AbilityManager {
 
  private:
   std::queue<AbilityNames> queue_ability;
-//  std::queue<std::unique_ptr<Ability>> queue_ability;
-
 };
 
 #endif

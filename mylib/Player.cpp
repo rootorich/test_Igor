@@ -1,5 +1,7 @@
 #include "Player.h"
 
+#include <utility>
+
 Player::Player() {
   is_bot_ = false;
   ability_manager_ = AbilityManager();
@@ -12,12 +14,21 @@ Player::Player(bool is_bot, size_t stage) {
 }
 
 void Player::set_field_(Field field) {
-  field_ = field;
+  field_ = std::move(field);
+}
+
+void Player::set_ability_manager_(AbilityManager& abilityManager){
+    ability_manager_ = abilityManager;
 }
 
 Field& Player::get_field_() {
   return field_;
 }
+
+bool Player::is_it_bot_(){
+    return is_bot_;
+}
+
 
 AbilityManager& Player::get_ability_manager_() {
   return ability_manager_;

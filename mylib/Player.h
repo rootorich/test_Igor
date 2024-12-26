@@ -10,6 +10,8 @@ class Player {
   Player(bool is_bot, size_t stage);
 
   void set_field_(Field field);
+  void set_ability_manager_(AbilityManager& abilityManager);
+
   Field& get_field_();
 
   AbilityManager& get_ability_manager_();
@@ -17,8 +19,9 @@ class Player {
   void ChangeTurn();
   bool get_player_turn_();
   size_t get_bot_accuracity_();
+  bool is_it_bot_();
 
- private:
+private:
   bool is_bot_;
   int bot_accuracity_;
 
@@ -27,7 +30,6 @@ class Player {
   AbilityManager ability_manager_;
 
   Field field_;
-
 
 };
 
