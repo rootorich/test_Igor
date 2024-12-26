@@ -227,11 +227,13 @@ Player Game::LoadPlayer(Saver& saver){
     bool is_it_bot = saver.loadData<bool>();
     bool turn = saver.loadData<bool>();
 
+
     AbilityManager abilityManager = LoadPlayerAbilities(saver);
     Field field = LoadField(saver);
 
     if (!is_it_bot){
         Player player;
+        player.set_turn_(turn);
         player.set_ability_manager_(abilityManager);
         player.set_field_(field);
     }

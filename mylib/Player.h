@@ -17,7 +17,8 @@ class Player {
   AbilityManager& get_ability_manager_();
 
   void ChangeTurn();
-  bool get_player_turn_();
+    void set_turn_(bool turn);
+    bool get_player_turn_();
   size_t get_bot_accuracity_();
   bool is_it_bot_();
 
@@ -30,7 +31,6 @@ private:
   AbilityManager ability_manager_;
 
   Field field_;
-
 };
 
 #endif

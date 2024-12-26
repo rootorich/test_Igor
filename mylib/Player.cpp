@@ -17,6 +17,10 @@ void Player::set_field_(Field field) {
   field_ = std::move(field);
 }
 
+void Player::set_turn_(bool turn){
+    player_turn_ = turn;
+}
+
 void Player::set_ability_manager_(AbilityManager& abilityManager){
     ability_manager_ = abilityManager;
 }
