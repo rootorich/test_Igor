@@ -1,10 +1,14 @@
-#include <iostream>
+//#include <iostream>
 
-#include "mylib/IOManager.h"
-#include "mylib/ShipManager.h"
+//#include "mylib/IOManager.h"
+//#include "mylib/ShipManager.h"
+#include "mylib/Game.h"
 
 int main() {
 
+  Game game = Game();
+
+  /*
   bool has_field = false;
   size_t user_command = 0;
 
@@ -159,6 +163,6 @@ int main() {
 
 
 
-
+  */
   return 0;
 }

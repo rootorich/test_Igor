@@ -42,7 +42,7 @@ void IOManager::GetInfoShips(ShipManager& ship_manager) {
           std::cout << "unknown error";
       }
 
-      std::cout << " orientation = ";
+      std::cout << ", orientation = ";
 
       switch (ships[i].get_orientation_()) {
         case ShipOrientation::kHorizontal:
@@ -57,7 +57,7 @@ void IOManager::GetInfoShips(ShipManager& ship_manager) {
           std::cout << "unknown error";
       }
 
-      std::cout << "is_used = ";
+      std::cout << ", is_used = ";
       std::cout << ((is_used[i]) ? "yes" : "no");
 
       std::cout << "\n";
@@ -163,6 +163,7 @@ void IOManager::PlaceShip(Field& field, ShipManager& ship_manager) {
         std::cout << "inputs less 1\n";
       } else {
         if (field.PlaceShipToField(ship, x - 1, y - 1)) {
+          ship_manager.set_is_used_(ship_num);
           std::cout << "Ship is placed\n\n";
           break;
         } else {

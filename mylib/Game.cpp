@@ -104,17 +104,13 @@ void Game::ExitGame() {
     std::cout << "Enter num of command:";
     std::cin >> user_command;
 
-    switch(user_command) {
-      case 1:
-        Save();
-        break;
-
-      default:
-        exit(1);
-        break;
-
+    if (user_command == 1) {
+      Save();
     }
   }
+
+  std::cout << "\nGoodbye\n";
+  exit(1);
 }
 
 void Game::Save() {
@@ -313,10 +309,10 @@ void Game::CreateShips(ShipManager& ship_manager) {
   size_t user_command = 0;
 
   while (true) {
-    std::cout << "\nCreate Ship:\n\n";
+    std::cout << "Create Ship:\n\n";
 
 
-    std::cout << "1. Add Ship\n";
+    std::cout << "1. Create Ship\n";
     std::cout << "2. Remove Ship\n";
     std::cout << "3. Place Ship\n";
 
@@ -347,17 +343,23 @@ void Game::CreateShips(ShipManager& ship_manager) {
 
     if (is_exit) {
       break;
+    } else {
+      io_manager_.GetInfoShips(ship_manager);
     }
   }
 }
 
 void Game::CreateBot(Field field, ShipManager ship_manager){
-  players_.push_back(Player(true, stage_));
+  players_.emplace_back(true, stage_);
 
   size_t width = field.get_cells_().size();
   size_t height = field.get_cells_()[0].size();
 
   players_[1].set_field_(Field(width, height));
+
+  //for (size_t i = ship_manager.get_ships_().size(); i >= 0; --i) {
+
+  //}
 
   // Place Ships to Field;
 }
@@ -371,7 +373,12 @@ void Game::NewGame() {
   ShipManager ship_manager = ShipManager();
   CreateShips(ship_manager);
 
-  CreateBot(field, ship_manager);
+  ShipManager bot_ship_manager = ship_manager;
+
+  io_manager_.ShotAbility(players_[0].get_field_(), players_[0].get_ability_manager_());
+
+  CreateBot(field, bot_ship_manager); // check
+  io_manager_.ShotAbility(players_[1].get_field_(), players_[0].get_ability_manager_());
 
 
   Process();

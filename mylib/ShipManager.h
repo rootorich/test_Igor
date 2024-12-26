@@ -17,6 +17,7 @@ class ShipManager {
 
   std::vector<Ship>& get_ships_();
   std::vector<bool>& get_is_used_();
+  void set_is_used_(size_t ship_num);
 
 
  private:
