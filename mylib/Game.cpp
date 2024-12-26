@@ -119,17 +119,24 @@ void Game::ExitGame() {
 
 void Game::Save() {
     Saver saver("file.txt");
-    auto field0 = players_[0].get_field_();
-    auto field1 = players_[1].get_field_();
 
-    SaveField(saver, field0);
-    SaveField(saver, field1);
+    int stage = players_[0].get_bot_accuracity_() / 10;
+    saver.saveData(stage);
+
+    SavePlayer(saver,players_[0]);
+    SavePlayer(saver,players_[1]);
 }
 
 void Game::Load() {
     Saver saver("file.txt");
 
+    int stage = saver.loadData<int>();
 
+    Player player0 = LoadPlayer(saver, stage);
+    Player player1 = LoadPlayer(saver, stage);
+
+    players_[0] = player0;
+    players_[1] = player1;
 
 
     game_is_start_ = true;
@@ -209,7 +216,6 @@ Field Game::LoadField(Saver& saver) {
     return field;
 }
 
-
 void Game::SavePlayer(Saver& saver, Player& player){
     bool is_it_bot = player.is_it_bot_();
     bool turn = player.get_player_turn_();
@@ -223,7 +229,7 @@ void Game::SavePlayer(Saver& saver, Player& player){
     SaveField(saver, player.get_field_());
 }
 
-Player Game::LoadPlayer(Saver& saver){
+Player Game::LoadPlayer(Saver& saver, int stage){
     bool is_it_bot = saver.loadData<bool>();
     bool turn = saver.loadData<bool>();
 
@@ -231,18 +237,13 @@ Player Game::LoadPlayer(Saver& saver){
     AbilityManager abilityManager = LoadPlayerAbilities(saver);
     Field field = LoadField(saver);
 
-    if (!is_it_bot){
-        Player player;
-        player.set_turn_(turn);
-        player.set_ability_manager_(abilityManager);
-        player.set_field_(field);
-    }
-    else{
-        //todo
-        Player player;
+    Player player = Player(is_it_bot, stage);
 
-        return player; // temp!!!
-    }
+    player.set_turn_(turn);
+    player.set_ability_manager_(abilityManager);
+    player.set_field_(field);
+
+    return player;
 
 }
 

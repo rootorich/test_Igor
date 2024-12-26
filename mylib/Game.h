@@ -67,7 +67,7 @@ public:
 
     void SavePlayerAbilities(Saver &saver, std::queue<AbilityNames> &abilities);
 
-    Player LoadPlayer(Saver &saver);
+    Player LoadPlayer(Saver &saver, int stage);
 
     AbilityManager LoadPlayerAbilities(Saver &saver);
 };
