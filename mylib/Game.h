@@ -67,7 +67,7 @@ public:
 
   void SavePlayer(Saver &saver, Player &player);
 
-  void SavePlayerAbilities(Saver &saver, std::queue<AbilityNames> &abilities);
+  void SavePlayerAbilities(Saver &saver, std::queue<AbilityNames> abilities);
 
   Player LoadPlayer(Saver &saver, int stage);
 

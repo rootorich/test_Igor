@@ -262,7 +262,7 @@ Player Game::LoadPlayer(Saver& saver, int stage){
 
 }
 
-void Game::SavePlayerAbilities(Saver& saver,std::queue<AbilityNames>&abilities){
+void Game::SavePlayerAbilities(Saver& saver,std::queue<AbilityNames>abilities){
 
   saver.saveData(abilities.size());
 
