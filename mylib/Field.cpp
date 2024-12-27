@@ -218,6 +218,9 @@ size_t Field::CountHittableCells() {
 void Field::SetCell(size_t x, size_t y, CellProperties cellProperties) {
     cells_[x][y] = cellProperties;
 }
+void Field::SetVision(size_t x, size_t y, bool vision) {
+  cells_[y][x].vision = vision;
+}
 
 
 

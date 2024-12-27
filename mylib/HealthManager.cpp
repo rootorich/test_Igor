@@ -33,6 +33,10 @@ void HealthManager::set_health_(int value) {
   (value > 0) ? IncreaseHealth(value) : DecreaseHealth(-value);
 }
 
+void HealthManager::ValueToHealth(int value) {
+  health_ = (SegmentHealth)value;
+}
+
 
 /*
 SegmentHealth HealthManager::operator + (int value) {

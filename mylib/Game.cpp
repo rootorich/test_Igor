@@ -16,7 +16,14 @@ void Game::Process() {
 
   size_t user_command = 0;
 
+
   while (true) {
+    std::cout << "\nYour field:\n\n";
+    io_manager_.ShowField(players_[0].get_field_());
+
+    std::cout << "\nEnemy field:\n\n";
+    io_manager_.ShowField(players_[1].get_field_());
+
     std::cout << "\nAvailable options:\n\n";
 
     std::cout << "1) Shot\n";
@@ -61,8 +68,6 @@ void Game::Process() {
       BotMove();
       ChangeTurn();
     }
-
-    break;
 
   }
 }
@@ -140,135 +145,150 @@ void Game::Load() {
 }
 
 
-void Game::SaveField(Saver& saver, Field& field){
-    std::vector<std::vector<CellProperties>> cells = field.get_cells_();
+void Game::SaveField(Saver& saver, Player& player){
+  std::vector<std::vector<CellProperties>> cells = player.get_field_().get_cells_();
 
-    std::map<Ship*, size_t> map;
-    std::vector<Ship*> ships;
+  saver.saveData(cells.size());
+  saver.saveData(cells[0].size());
 
-    for (auto & cell : cells){
-        for (auto & item : cell){
-            if (item.segment_num == 0){
-                map[item.ship_p] = ships.size();
-                ships.push_back(item.ship_p);
-            }
+  for (int y = 0; y < cells.size(); ++y){
+    for (int x = 0; x < cells[0].size(); ++x){
+      saver.saveData(cells[y][x].vision);
+    }
+  }
+
+  saver.saveData(player.get_ship_manager().get_ships_().size());
+
+  for (int y = 0; y < cells.size(); ++y) {
+    for (int x = 0; x < cells[0].size(); ++x) {
+      if (cells[y][x].segment_num == 0) {
+        Ship* ship = cells[y][x].ship_p;
+
+        saver.saveData(y);
+        saver.saveData(x);
+        saver.saveData((int)(*ship).get_segments_());
+        saver.saveData((int)(*ship).get_orientation_());
+        for (int i = 0; i < (int)(*ship).get_segments_(); ++i) {
+          saver.saveData((int)(*ship).get_segments_health_()[i].get_health_());
         }
+      }
     }
-
-    saver.saveData(ships.size());
-
-    for (auto & ship : ships){
-        SaveShip(saver, *ship);
-    }
-
-    saver.saveData(cells.size());
-    saver.saveData(cells[0].size());
-
-    for (int i = 0; i < cells.size(); ++i){
-        for (int j = 0; j < cells[i].size(); ++j){
-            SavedCellProperties savedCellProperties{};
-            savedCellProperties.ship_number = map[cells[i][j].ship_p];
-            savedCellProperties.segment_num = cells[i][j].segment_num;
-            savedCellProperties.status = cells[i][j].status;
-            savedCellProperties.vision = cells[i][j].vision;
-
-            SaveCellProperties(saver, savedCellProperties);
-        }
-    }
+  }
 }
 
 void Game::CreatePlayer() {
-    players_.push_back(Player());
+    players_.emplace_back();
 }
 
-Field Game::LoadField(Saver& saver) {
-    int ships_size = saver.loadData<int>();
+void Game::LoadField(Saver& saver, Player& player) {
+  int height = saver.loadData<int>();
+  int width = saver.loadData<int>();
 
-    std::vector<Ship*> ships;
+  Field field = Field(width, height);
 
-    for (int i = 0; i < ships_size; ++i){
-        ships.push_back(LoadShip(saver));
+  std::vector<std::vector<bool>> cells_vision;
+
+  for (int y = 0; y < height; ++y) {
+    cells_vision.emplace_back();
+    for (int x = 0; x < width; ++x) {
+      cells_vision[y].emplace_back(saver.loadData<bool>());
+    }
+  }
+
+
+  int ships_count = saver.loadData<int>();
+
+  ShipManager ship_manager = ShipManager();
+
+  for (int i = 0; i < ships_count; ++i){
+    int y = saver.loadData<int>();
+    int x = saver.loadData<int>();
+    auto ship_size = (ShipSize)saver.loadData<int>();
+    auto ship_orientation = (ShipOrientation)saver.loadData<int>();
+
+    ship_manager.AddShip(ship_size, ship_orientation);
+
+    for (int j = 0; j < (int)ship_size; ++j) {
+      ship_manager.get_ships_()[i].get_segments_health_()[j].ValueToHealth(saver.loadData<int>());
     }
 
-    int rows = saver.loadData<int>();
-    int colls = saver.loadData<int>();
+    field.PlaceShipToField(ship_manager.get_ships_()[i], x, y);
+  }
 
-    Field field;
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      field.SetVision(x, y, cells_vision[y][x]);
 
-    for (int i = 0; i < rows; ++i){
-        for (int j = 0; j < colls; ++j){
-            SavedCellProperties savedCellProperties = LoadCellProperties(saver);
+      if (field.get_cells_()[y][x].ship_p) {
+        SegmentHealth segment_health = field.get_cells_()[y][x].ship_p->get_segments_health_()[field.get_cells_()[y][x].segment_num].get_health_();
+        field.ChangeHealthCell(x, y, (int)segment_health);
 
-            CellProperties cellProperties = {};
-            cellProperties.ship_p = ships[savedCellProperties.ship_number];
-            cellProperties.segment_num = savedCellProperties.segment_num;
-            cellProperties.vision = savedCellProperties.vision;
-            cellProperties.status = savedCellProperties.status;
-
-            field.SetCell(i, j, cellProperties);
-        }
+      }
     }
+  }
 
-    return field;
+  player.set_field_(field);
+  player.set_ship_manager(ship_manager);
 }
 
 void Game::SavePlayer(Saver& saver, Player& player){
-    bool is_it_bot = player.is_it_bot_();
-    bool turn = player.get_player_turn_();
+  bool is_it_bot = player.is_it_bot_();
+  bool turn = player.get_player_turn_();
 
-    saver.saveData(is_it_bot);
-    saver.saveData(turn);
+  saver.saveData(is_it_bot);
+  saver.saveData(turn);
 
-    std::queue<AbilityNames> unique_abilities = player.get_ability_manager_().get_queue_ability();
-    SavePlayerAbilities(saver,unique_abilities);
+  std::queue<AbilityNames> unique_abilities = player.get_ability_manager_().get_queue_ability();
+  SavePlayerAbilities(saver,unique_abilities);
 
-    SaveField(saver, player.get_field_());
+  SaveField(saver, player);
 }
 
 Player Game::LoadPlayer(Saver& saver, int stage){
-    bool is_it_bot = saver.loadData<bool>();
-    bool turn = saver.loadData<bool>();
+  bool is_it_bot = saver.loadData<bool>();
+  bool turn = saver.loadData<bool>();
 
 
-    AbilityManager abilityManager = LoadPlayerAbilities(saver);
-    Field field = LoadField(saver);
+  AbilityManager abilityManager = LoadPlayerAbilities(saver);
 
-    Player player = Player(is_it_bot, stage);
+  Player player = Player(is_it_bot, stage);
 
-    player.set_turn_(turn);
-    player.set_ability_manager_(abilityManager);
-    player.set_field_(field);
+  LoadField(saver, player);
 
-    return player;
+  player.set_turn_(turn);
+  player.set_ability_manager_(abilityManager);
+
+  return player;
 
 }
 
 void Game::SavePlayerAbilities(Saver& saver,std::queue<AbilityNames>&abilities){
 
-    saver.saveData(abilities.size());
+  saver.saveData(abilities.size());
 
-    while(!abilities.empty()){
-        AbilityNames ability = abilities.front();
-        saver.saveData((int)ability);
-        abilities.pop();
-    }
+  while(!abilities.empty()){
+    AbilityNames ability = abilities.front();
+    saver.saveData((int)ability);
+    abilities.pop();
+  }
 }
 
 AbilityManager Game::LoadPlayerAbilities(Saver& saver){
-    int size = saver.loadData<int>();
+  int size = saver.loadData<int>();
 
-    std::queue<AbilityNames> abilities;
+  std::queue<AbilityNames> abilities;
 
-    for (int i = 0; i < size; ++i){
-        auto ability = (AbilityNames)saver.loadData<int>();
-        abilities.push(ability);
-    }
+  for (int i = 0; i < size; ++i){
+    auto ability = (AbilityNames)saver.loadData<int>();
+    abilities.push(ability);
+  }
 
-    AbilityManager abilityManager(abilities);
+  AbilityManager abilityManager(abilities);
 
-    return abilityManager;
+  return abilityManager;
 }
 
+/*
 void Game::SaveShip(Saver& saver, Ship ship) {
 
     ShipSize ship_size = ship.get_segments_();
@@ -276,6 +296,30 @@ void Game::SaveShip(Saver& saver, Ship ship) {
 
     saver.saveData((int)ship_size);
     saver.saveData((int)ship_orientation);
+}
+*/
+/*
+void Game::SaveShips(Saver& saver, Field field) {
+
+  std::vector<std::vector<CellProperties>> cells = field.get_cells_();
+
+  for (int y = 0; y < cells.size(); ++y) {
+    for (int x = 0; x < cells.size(); ++x) {
+      if (cells[y][x].segment_num == 0) {
+        Ship* ship = cells[y][x].ship_p;
+
+
+        saver.saveData(y);
+        saver.saveData(x);
+        saver.saveData((int)(*ship).get_segments_());
+        saver.saveData((int)(*ship).get_orientation_());
+        for (int i = 0; i < (int)(*ship).get_segments_(); ++i) {
+          saver.saveData((int)(*ship).get_segments_health_()[i].get_health_());
+        }
+      }
+    }
+  }
+
 }
 
 Ship* Game::LoadShip(Saver& saver) {
@@ -287,6 +331,12 @@ Ship* Game::LoadShip(Saver& saver) {
     return ship;
 }
 
+Ship* LoadShips(Saver &saver) {
+
+}
+*/
+
+/*
 void Game::SaveCellProperties(Saver& saver, SavedCellProperties savedCellProperties) {
     saver.saveData((int)savedCellProperties.ship_number);
     saver.saveData(savedCellProperties.segment_num);
@@ -303,8 +353,9 @@ SavedCellProperties Game::LoadCellProperties(Saver& saver) {
 
     return savedCellProperties;
 }
+*/
 
-void Game::CreateShips(ShipManager& ship_manager) {
+void Game::CreateShips(Player& player) {
   bool is_exit = false;
   size_t user_command = 0;
 
@@ -324,13 +375,13 @@ void Game::CreateShips(ShipManager& ship_manager) {
 
     switch (user_command) {
       case 1:
-        io_manager_.AddShip(ship_manager);
+        io_manager_.AddShip(player.get_ship_manager());
         break;
       case 2:
-        io_manager_.RemoveShip(ship_manager);
+        io_manager_.RemoveShip(player.get_ship_manager());
         break;
       case 3:
-        io_manager_.PlaceShip(players_[0].get_field_(), ship_manager);
+        io_manager_.PlaceShip(player.get_field_(), player.get_ship_manager());
         break;
       case 0:
         is_exit = true;
@@ -344,7 +395,7 @@ void Game::CreateShips(ShipManager& ship_manager) {
     if (is_exit) {
       break;
     } else {
-      io_manager_.GetInfoShips(ship_manager);
+      io_manager_.GetInfoShips(player.get_ship_manager());
     }
   }
 }
@@ -356,12 +407,19 @@ void Game::CreateBot(Field field, ShipManager ship_manager){
   size_t height = field.get_cells_()[0].size();
 
   players_[1].set_field_(Field(width, height));
+  players_[1].set_ship_manager(ship_manager);
 
-  //for (size_t i = ship_manager.get_ships_().size(); i >= 0; --i) {
+  for (int i = ship_manager.get_ships_().size(); i >= 0; --i) {
+    for (int j = 0; j < 30; ++j) {
+      int y = std::rand() % field.get_cells_().size();
+      int x = std::rand() % field.get_cells_()[0].size();
 
-  //}
+      if (field.PlaceShipToField(ship_manager.get_ships_()[i], x, y)) {
+        break;
+      }
+    }
+  }
 
-  // Place Ships to Field;
 }
 
 void Game::NewGame() {
@@ -371,15 +429,17 @@ void Game::NewGame() {
   players_[0].set_field_(field);
 
   ShipManager ship_manager = ShipManager();
-  CreateShips(ship_manager);
+  players_[0].set_ship_manager(ship_manager);
+  CreateShips(players_[0]);
 
-  ShipManager bot_ship_manager = ship_manager;
 
-  io_manager_.ShotAbility(players_[0].get_field_(), players_[0].get_ability_manager_());
+  // check dif field ship damage
+  //io_manager_.ShotAbility(players_[0].get_field_(), players_[0].get_ability_manager_());
 
-  CreateBot(field, bot_ship_manager); // check
-  io_manager_.ShotAbility(players_[1].get_field_(), players_[0].get_ability_manager_());
+  CreateBot(players_[0].get_field_(), players_[0].get_ship_manager()); // check
+  //io_manager_.ShotAbility(players_[1].get_field_(), players_[0].get_ability_manager_());
 
+  players_[0].get_field_().OpenCells();
 
   Process();
 }
@@ -390,14 +450,17 @@ void Game::ChangeTurn() {
 }
 
 bool Game::BotMove() {
-  io_manager_.ShotAbility(players_[0].get_field_(), players_[1].get_ability_manager_());
+  //io_manager_.ShotAbility(players_[0].get_field_(), players_[1].get_ability_manager_());
 
   if (std::rand() % 100 < players_[1].get_bot_accuracity_()) {
-    players_[1].get_ability_manager_().GetRandomShot()->Apply(players_[0].get_field_(), {0,0});
+    std::unique_ptr<Ability> ability = players_[1].get_ability_manager_().GetRandomShot();
+    ability->Apply(players_[0].get_field_(), {0,0});
     return true;
   } else {
     return false;
   }
+
+  ChangeTurn();
 }
 
 

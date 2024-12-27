@@ -51,6 +51,8 @@ class Field {
 
   void SetCell(size_t x, size_t y, CellProperties cellProperties);
 
+  void SetVision(size_t x, size_t y, bool vision);
+
   size_t CountHittableCells();
 
  private:

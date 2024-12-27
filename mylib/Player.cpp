@@ -18,11 +18,15 @@ void Player::set_field_(Field field) {
 }
 
 void Player::set_turn_(bool turn){
-    player_turn_ = turn;
+  player_turn_ = turn;
 }
 
 void Player::set_ability_manager_(AbilityManager& abilityManager){
-    ability_manager_ = abilityManager;
+  ability_manager_ = abilityManager;
+}
+
+void Player::set_ship_manager(ShipManager& ship_manager) {
+  ship_manager_ = ship_manager;
 }
 
 Field& Player::get_field_() {
@@ -30,7 +34,7 @@ Field& Player::get_field_() {
 }
 
 bool Player::is_it_bot_(){
-    return is_bot_;
+  return is_bot_;
 }
 
 
@@ -48,4 +52,7 @@ bool Player::get_player_turn_() {
 
 size_t Player::get_bot_accuracity_() {
   return bot_accuracity_;
+}
+ShipManager& Player::get_ship_manager() {
+  return ship_manager_;
 }

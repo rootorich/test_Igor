@@ -16,6 +16,8 @@ class HealthManager {
 
   SegmentHealth& get_health_();
   void set_health_(int value);
+
+  void ValueToHealth(int value);
 /*
   SegmentHealth operator + (int value);
   SegmentHealth operator - (int value);

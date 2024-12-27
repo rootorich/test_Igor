@@ -10,15 +10,16 @@ class Player {
   Player(bool is_bot, size_t stage);
 
   void set_field_(Field field);
-  void set_ability_manager_(AbilityManager& abilityManager);
+  void set_ability_manager_(AbilityManager& ability_manager);
+  void set_ship_manager(ShipManager& ship_manager);
 
   Field& get_field_();
-
   AbilityManager& get_ability_manager_();
+  ShipManager& get_ship_manager();
 
   void ChangeTurn();
-    void set_turn_(bool turn);
-    bool get_player_turn_();
+  void set_turn_(bool turn);
+  bool get_player_turn_();
   size_t get_bot_accuracity_();
   bool is_it_bot_();
 
@@ -30,6 +31,7 @@ private:
 
   AbilityManager ability_manager_;
 
+  ShipManager ship_manager_;
   Field field_;
 };
 
