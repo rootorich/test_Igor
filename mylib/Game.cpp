@@ -151,8 +151,8 @@ void Game::Load() {
     Player player0 = LoadPlayer(saver, stage_);
     Player player1 = LoadPlayer(saver, stage_);
 
-    players_[0] = player0;
-    players_[1] = player1;
+    players_.emplace_back(player0);
+    players_.emplace_back(player1);
 
 
     game_is_start_ = true;
@@ -176,13 +176,14 @@ void Game::SaveField(Saver& saver, Player& player){
 
   for (int y = 0; y < cells.size(); ++y) {
     for (int x = 0; x < cells[0].size(); ++x) {
-      if (cells[y][x].segment_num == 0) {
+      if (cells[y][x].segment_num == 0 && cells[y][x].ship_p != nullptr) {
         Ship* ship = cells[y][x].ship_p;
 
         saver.saveData(y);
         saver.saveData(x);
         saver.saveData((int)(*ship).get_segments_());
         saver.saveData((int)(*ship).get_orientation_());
+
         for (int i = 0; i < (int)(*ship).get_segments_(); ++i) {
           saver.saveData((int)(*ship).get_segments_health_()[i].get_health_());
         }
