@@ -16,6 +16,8 @@ class ShipManager {
   void RemoveShip(size_t ship_num);
 
   std::vector<Ship>& get_ships_();
+  std::vector<ShipSize> get_ship_sizes_();
+  std::vector<ShipOrientation> get_ship_orientations_();
   std::vector<bool>& get_is_used_();
   void set_is_used_(size_t ship_num);
 

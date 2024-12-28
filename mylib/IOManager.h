@@ -37,6 +37,7 @@ class IOManager {
   void UseAbility(Field& field, AbilityManager& abilityManager);
   void ShotAbility(Field& field, AbilityManager& ability_manager);
 
+  void BotShotAbility(Field& field, AbilityManager& ability_manager, size_t accuracy);
 
   void QuickStartShip(Field& field, ShipManager& ship_manager);
   void QuickStartField(Field& field, ShipManager& ship_manager);

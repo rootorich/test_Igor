@@ -28,3 +28,21 @@ std::vector<bool>& ShipManager::get_is_used_() {
 void ShipManager::set_is_used_(size_t ship_num) {
   is_used_[ship_num] = true;
 }
+std::vector<ShipSize> ShipManager::get_ship_sizes_() {
+  std::vector<ShipSize> ship_sizes;
+
+  for (auto ship : ships_) {
+    ship_sizes.emplace_back(ship.get_segments_());
+  }
+
+  return ship_sizes;
+}
+std::vector<ShipOrientation> ShipManager::get_ship_orientations_() {
+  std::vector<ShipOrientation> ship_orientations;
+
+  for (auto ship : ships_) {
+    ship_orientations.emplace_back(ship.get_orientation_());
+  }
+
+  return ship_orientations;
+}

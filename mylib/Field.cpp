@@ -147,12 +147,14 @@ void Field::HideCells() {
 void Field::OpenCells() {
   for (auto& rows : cells_) {
     for (auto& cell : rows) {
+      /*
       if (cell.ship_p != nullptr) {
         cell.status = ConvertSegmentHealthToCellStatus(
                 cell.ship_p->get_segments_health_()[cell.segment_num].get_health_());
       } else {
         cell.status = CellStatus::kEmpty;
       }
+      */
       cell.vision = true;
     }
   }

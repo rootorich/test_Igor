@@ -16,7 +16,6 @@ void Game::Process() {
 
   size_t user_command = 0;
 
-
   while (true) {
     std::cout << "\nYour field:\n\n";
     io_manager_.ShowField(players_[0].get_field_());
@@ -29,6 +28,7 @@ void Game::Process() {
     std::cout << "1) Shot\n";
     std::cout << "2) Use Ability\n";
     std::cout << "3) Ability List\n";
+    std::cout << "4) Open Field\n";
 
     std::cout << "9) Save\n";
     std::cout << "0) Exit\n";
@@ -52,6 +52,10 @@ void Game::Process() {
         io_manager_.GetAbilityList(players_[0].get_ability_manager_());
         break;
 
+      case 4:
+        io_manager_.OpenField(players_[1].get_field_());
+        break;
+
       case 9:
         Save();
         break;
@@ -64,9 +68,19 @@ void Game::Process() {
         break;
     }
 
+    if (is_dead(players_[1])) {
+      Win();
+      continue;
+    }
+
     if (players_[1].get_player_turn_()) {
       BotMove();
       ChangeTurn();
+    }
+
+    if (is_dead(players_[0])) {
+      Lose();
+      break;
     }
 
   }
@@ -75,26 +89,28 @@ void Game::Process() {
 void Game::MainMenu() {
   size_t user_command = 0;
 
-  std::cout << "\nAvailable options:\n\n";
+  while (true) {
+    std::cout << "\nAvailable options:\n\n";
 
-  std::cout << "1. New Game\n";
-  std::cout << "2. Load Game\n";
-  std::cout << "Any other. Exit Game\n";
+    std::cout << "1. New Game\n";
+    std::cout << "2. Load Game\n";
+    std::cout << "Any other. Exit Game\n";
 
-  std::cout << "Enter num of command:";
-  std::cin >> user_command;
+    std::cout << "Enter num of command:";
+    std::cin >> user_command;
 
-  switch (user_command) {
-    case 1:
-      NewGame();
-      break;
-    case 2:
-      Load();
-      break;
+    switch (user_command) {
+      case 1:
+        NewGame();
+        break;
+      case 2:
+        Load();
+        break;
 
-    default:
-      ExitGame();
-      break;
+      default:
+        ExitGame();
+        break;
+    }
   }
 }
 
@@ -121,8 +137,7 @@ void Game::ExitGame() {
 void Game::Save() {
     Saver saver("file.txt");
 
-    int stage = players_[0].get_bot_accuracity_() / 10;
-    saver.saveData(stage);
+    saver.saveData(stage_);
 
     SavePlayer(saver,players_[0]);
     SavePlayer(saver,players_[1]);
@@ -131,10 +146,10 @@ void Game::Save() {
 void Game::Load() {
     Saver saver("file.txt");
 
-    int stage = saver.loadData<int>();
+    stage_ = saver.loadData<int>();
 
-    Player player0 = LoadPlayer(saver, stage);
-    Player player1 = LoadPlayer(saver, stage);
+    Player player0 = LoadPlayer(saver, stage_);
+    Player player1 = LoadPlayer(saver, stage_);
 
     players_[0] = player0;
     players_[1] = player1;
@@ -409,12 +424,12 @@ void Game::CreateBot(Field field, ShipManager ship_manager){
   players_[1].set_field_(Field(width, height));
   players_[1].set_ship_manager(ship_manager);
 
-  for (int i = ship_manager.get_ships_().size(); i >= 0; --i) {
+  for (int i = 0; i < ship_manager.get_ships_().size(); ++i) {
     for (int j = 0; j < 30; ++j) {
       int y = std::rand() % field.get_cells_().size();
       int x = std::rand() % field.get_cells_()[0].size();
 
-      if (field.PlaceShipToField(ship_manager.get_ships_()[i], x, y)) {
+      if (players_[1].get_field_().PlaceShipToField(players_[1].get_ship_manager().get_ships_()[i], x, y)) {
         break;
       }
     }
@@ -433,7 +448,6 @@ void Game::NewGame() {
   CreateShips(players_[0]);
 
 
-  // check dif field ship damage
   //io_manager_.ShotAbility(players_[0].get_field_(), players_[0].get_ability_manager_());
 
   CreateBot(players_[0].get_field_(), players_[0].get_ship_manager()); // check
@@ -449,19 +463,55 @@ void Game::ChangeTurn() {
   players_[1].ChangeTurn();
 }
 
-bool Game::BotMove() {
+void Game::BotMove() {
   //io_manager_.ShotAbility(players_[0].get_field_(), players_[1].get_ability_manager_());
 
-  if (std::rand() % 100 < players_[1].get_bot_accuracity_()) {
+  io_manager_.BotShotAbility(players_[1].get_field_(), players_[1].get_ability_manager_(), players_[1].get_bot_accuracy_());
+  /*
+  int rand_num = std::rand() % 100;
+
+  std::cout << "rand_num = " << rand_num << "\n";
+
+  if (rand_num < players_[1].get_bot_accuracy_()) {
     std::unique_ptr<Ability> ability = players_[1].get_ability_manager_().GetRandomShot();
     ability->Apply(players_[0].get_field_(), {0,0});
+
     return true;
   } else {
     return false;
   }
-
-  ChangeTurn();
+  */
 }
 
+void Game::Win() {
+  std::cout << "\nYou Win!\n";
+  std::cout << "\nStage " << stage_ << "is clear!\n\n";
+
+  stage_++;
+
+  players_.pop_back();
+
+  ShipManager ship_manager = ShipManager(players_[0].get_ship_manager().get_ship_sizes_(),
+                                         players_[0].get_ship_manager().get_ship_orientations_());
+
+  CreateBot(players_[0].get_field_(), ship_manager);
+}
+
+void Game::Lose() {
+  std::cout << "\nYou Lost!\n";
+
+  std::cout << "\nOpen enemy field!\n";
+  players_[1].get_field_().OpenCells();
+
+  players_.clear();
+}
+
+bool Game::is_dead(Player& player) {
+  if (player.get_field_().CountHittableCells() == 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 

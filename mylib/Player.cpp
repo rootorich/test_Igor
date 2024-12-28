@@ -10,7 +10,7 @@ Player::Player() {
 Player::Player(bool is_bot, size_t stage) {
   is_bot_ = is_bot;
   player_turn_ = !is_bot;
-  bot_accuracity_ = 10 * stage;
+  bot_accuracy_ = 10 * stage;
 }
 
 void Player::set_field_(Field field) {
@@ -50,8 +50,8 @@ bool Player::get_player_turn_() {
   return player_turn_;
 }
 
-size_t Player::get_bot_accuracity_() {
-  return bot_accuracity_;
+size_t Player::get_bot_accuracy_() {
+  return bot_accuracy_;
 }
 ShipManager& Player::get_ship_manager() {
   return ship_manager_;

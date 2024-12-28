@@ -20,12 +20,12 @@ class Player {
   void ChangeTurn();
   void set_turn_(bool turn);
   bool get_player_turn_();
-  size_t get_bot_accuracity_();
+  size_t get_bot_accuracy_();
   bool is_it_bot_();
 
 private:
   bool is_bot_;
-  int bot_accuracity_;
+  int bot_accuracy_;
 
   bool player_turn_;
 

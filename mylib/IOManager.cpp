@@ -157,12 +157,14 @@ void IOManager::PlaceShip(Field& field, ShipManager& ship_manager) {
     while (true) {
       std::cout << "Enter left-top position ship (coord x and y): ";
       std::cin >> x >> y;
+      x--;
+      y--;
 
-      if (x < 1 || y < 1) {
+      if (x < 0 || y < 0) {
         std::cout << "uncorrected position\n";
         std::cout << "inputs less 1\n";
       } else {
-        if (field.PlaceShipToField(ship, x - 1, y - 1)) {
+        if (field.PlaceShipToField(ship, x, y)) {
           ship_manager.set_is_used_(ship_num);
           std::cout << "Ship is placed\n\n";
           break;
@@ -244,7 +246,7 @@ void IOManager::HideField(Field& field) {
 void IOManager::OpenField(Field& field) {
   field.OpenCells();
 
-  std::cout << "Field is opened\n\n";
+  //std::cout << "Field is opened\n\n";
 }
 
 void IOManager::HitCell(Field& field) {
@@ -415,8 +417,8 @@ void IOManager::UseAbility(Field& field, AbilityManager& abilityManager) {
   }
 }
 
-void IOManager::ShotAbility(Field& field, AbilityManager& abilityManager) {
-  std::unique_ptr<Ability> ability = abilityManager.GetStandartShot();
+void IOManager::ShotAbility(Field& field, AbilityManager& ability_manager) {
+  std::unique_ptr<Ability> ability = ability_manager.GetStandartShot();
 
   int x, y;
   bool is_success;
@@ -444,14 +446,33 @@ void IOManager::ShotAbility(Field& field, AbilityManager& abilityManager) {
     } else {
       std::cout << "Miss";
     }
+    std::cout << "\n";
     field.OpenCell(x, y);
 
     break;
   }
 
   if (hittable_cells < field.CountHittableCells()) {
-    abilityManager.SetRandomAbility();
+    ability_manager.SetRandomAbility();
   }
+}
+
+void IOManager::BotShotAbility(Field& field, AbilityManager& ability_manager, size_t accuracy) {
+  int rand_num = std::rand() % 100;
+
+  std::cout << "rand_num = " << rand_num << "\n";
+
+  if (rand_num < accuracy) {
+    std::unique_ptr<Ability> ability = ability_manager.GetRandomShot();
+
+    ability->Apply(field, {0,0});
+
+    std::cout << "Bot hit you";
+  } else {
+    std::cout << "Bot missed you";
+  }
+
+  std::cout << "\n";
 }
 
 void IOManager::QuickStartShip(Field& field, ShipManager& ship_manager) {
